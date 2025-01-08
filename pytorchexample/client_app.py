@@ -3,11 +3,33 @@
 from typing import Optional, Callable
 import torch
 from flwr.client import Client, ClientApp
-from flwr.common import Context,FitIns,FitRes,ndarrays_to_parameters,Status,Code,EvaluateIns,EvaluateRes, Parameters, parameters_to_ndarrays,GetParametersIns,GetParametersRes
+from flwr.common import (
+    Context,
+    FitIns,
+    FitRes,
+    ndarrays_to_parameters,
+    Status,
+    Code,
+    EvaluateIns,
+    EvaluateRes,
+    Parameters,
+    parameters_to_ndarrays,
+    GetParametersIns,
+    GetParametersRes,
+)
 import ray
 from flwr_datasets import FederatedDataset
-from pytorchexample.task import load_fds, load_loaders, set_weights, train, test, get_model, get_weights
+from pytorchexample.task import (
+    load_fds,
+    load_loaders,
+    set_weights,
+    train,
+    test,
+    get_model,
+    get_weights,
+)
 from pytorchexample.common import ClientMethods
+
 
 class FlowerClient(Client):
     def __init__(
@@ -43,7 +65,9 @@ class FlowerClient(Client):
             self.net = model
         else:
             raise ValueError("You need to specify a model to be used")
-        self.trainloader, self.valloader = load_loaders(self.partition_id, self.batch_size, self.fds)
+        self.trainloader, self.valloader = load_loaders(
+            self.partition_id, self.batch_size, self.fds
+        )
         self.net.to(self.device)
 
     def fit(self, ins: FitIns) -> FitRes:
@@ -52,11 +76,25 @@ class FlowerClient(Client):
 
         if "semaphore" in self.context.node_config:
             self.context.node_config["semaphore"].acquire()
-            loss, acc = train(self.net, self.trainloader, self.valloader, self.local_epochs, self.lr, self.device)
+            loss, acc = train(
+                self.net,
+                self.trainloader,
+                self.valloader,
+                self.local_epochs,
+                self.lr,
+                self.device,
+            )
             self.context.node_config["semaphore"].release()
             self.context.node_config.pop("semaphore")
         else:
-            loss, acc = train(self.net, self.trainloader, self.valloader, self.local_epochs, self.lr, self.device)
+            loss, acc = train(
+                self.net,
+                self.trainloader,
+                self.valloader,
+                self.local_epochs,
+                self.lr,
+                self.device,
+            )
 
         ndarrays_updated = get_weights(self.net)
         parameters_updated = ndarrays_to_parameters(ndarrays_updated)
@@ -83,11 +121,13 @@ class FlowerClient(Client):
             num_examples=len(self.valloader),
             metrics={"accuracy": accuracy},
         )
-    
+
     def _get_params(self, ins: EvaluateIns | FitIns):
         match ins.parameters.tensor_type:
             case "ray.store":
-                params = Parameters(tensors=ray.get(ins.parameters.tensors), tensor_type="nump.ndarray")
+                params = Parameters(
+                    tensors=ray.get(ins.parameters.tensors), tensor_type="nump.ndarray"
+                )
                 del ins.parameters.tensors
                 return parameters_to_ndarrays(params)
             case "numpy.ndarray":
@@ -95,7 +135,6 @@ class FlowerClient(Client):
                 return ndarrays_original
 
     def get_parameters(self, ins: GetParametersIns) -> GetParametersRes:
-
         # Get parameters as a list of NumPy ndarray's
         ndarrays = get_weights(self.net)
 
@@ -111,7 +150,11 @@ class FlowerClient(Client):
 
 
 def client_fn(
-    context: Context, *args, method: Optional[ClientMethods] = None, fds: Optional[FederatedDataset] = None, **kwargs
+    context: Context,
+    *args,
+    method: Optional[ClientMethods] = None,
+    fds: Optional[FederatedDataset] = None,
+    **kwargs,
 ) -> tuple[FitRes | EvaluateRes | GetParametersRes, Context] | Client:
     partition_id = context.node_config["partition-id"]
     num_partitions = context.node_config["num-partitions"]
@@ -145,9 +188,11 @@ def client_fn(
                 raise NotImplementedError
         client = None
         return res, context
-    
+
+
 def client_fn_wrapper(context):
     return client_fn(context)
+
 
 # Flower ClientApp
 app = ClientApp(client_fn_wrapper)

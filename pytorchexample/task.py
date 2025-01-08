@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, Normalize, ToTensor
 from functools import lru_cache
 
+
 class Net(nn.Module):
     """Model (simple CNN adapted from 'PyTorch: A 60 Minute Blitz')"""
 
@@ -31,9 +32,11 @@ class Net(nn.Module):
         x = F.relu(self.fc2(x))
         return self.fc3(x)
 
+
 @lru_cache(1)
 def get_model():
     return Net()
+
 
 def get_weights(net):
     return [val.cpu().numpy() for _, val in net.state_dict().items()]
@@ -44,6 +47,7 @@ def set_weights(net, parameters):
     state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
     net.load_state_dict(state_dict, strict=True)
 
+
 def load_fds(num_partitions: int):
     partitioner = IidPartitioner(num_partitions=num_partitions)
     fds = FederatedDataset(
@@ -51,6 +55,7 @@ def load_fds(num_partitions: int):
         partitioners={"train": partitioner},
     )
     return fds
+
 
 def load_loaders(partition_id: int, batch_size: int, fds: FederatedDataset):
     """Load partition CIFAR10 data."""

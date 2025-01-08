@@ -8,7 +8,6 @@ from flwr.server.strategy import FedAvg
 from pytorchexample.task import get_weights, get_model
 
 
-
 # Define metric aggregation function
 def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
     # Multiply accuracy of each client by number of examples used

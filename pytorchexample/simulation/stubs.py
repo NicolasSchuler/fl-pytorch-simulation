@@ -22,6 +22,7 @@ from flwr.server.criterion import Criterion
 
 class ClientManagerStub(ClientManager):
     """Code taken from the Flower repository (https://github.com/adap/flower)"""
+
     def __init__(self, num_clients):
         self.num_clients = num_clients
         self.clients = {f"{i}": ClientProxyStub(str(i)) for i in range(num_clients)}
@@ -42,17 +43,23 @@ class ClientManagerStub(ClientManager):
         return self.clients  # type: ignore
 
     def sample(
-        self, num_clients: int, min_num_clients: Optional[int] = None, criterion: Optional[Criterion] = None
+        self,
+        num_clients: int,
+        min_num_clients: Optional[int] = None,
+        criterion: Optional[Criterion] = None,
     ) -> list[ClientProxy]:
         # Sample clients which meet the criterion
         available_cids = list(self.clients)
         if criterion is not None:
-            available_cids = [cid for cid in available_cids if criterion.select(self.clients[cid])]
+            available_cids = [
+                cid for cid in available_cids if criterion.select(self.clients[cid])
+            ]
 
         if num_clients > len(available_cids):
             log(
                 INFO,
-                "Sampling failed: number of available clients" " (%s) is less than number of requested clients (%s).",
+                "Sampling failed: number of available clients"
+                " (%s) is less than number of requested clients (%s).",
                 len(available_cids),
                 num_clients,
             )
@@ -73,11 +80,17 @@ class ClientProxyStub(ClientProxy):
     ) -> GetParametersRes:
         return None  # type: ignore
 
-    def fit(self, ins: FitIns, timeout: Optional[float], group_id: Optional[int]) -> FitRes:
+    def fit(
+        self, ins: FitIns, timeout: Optional[float], group_id: Optional[int]
+    ) -> FitRes:
         return None  # type: ignore
 
-    def evaluate(self, ins: EvaluateIns, timeout: Optional[float], group_id: Optional[int]) -> EvaluateRes:
+    def evaluate(
+        self, ins: EvaluateIns, timeout: Optional[float], group_id: Optional[int]
+    ) -> EvaluateRes:
         return None  # type: ignore
 
-    def reconnect(self, ins: ReconnectIns, timeout: Optional[float], group_id: Optional[int]) -> DisconnectRes:
+    def reconnect(
+        self, ins: ReconnectIns, timeout: Optional[float], group_id: Optional[int]
+    ) -> DisconnectRes:
         return None  # type: ignore

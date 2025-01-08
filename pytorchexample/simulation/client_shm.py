@@ -4,7 +4,16 @@ from multiprocessing.connection import Connection
 
 from click import Context
 from flwr.client import Client
-from flwr.common import EvaluateIns, EvaluateRes, FitIns, FitRes, GetParametersIns, GetParametersRes, Parameters, log
+from flwr.common import (
+    EvaluateIns,
+    EvaluateRes,
+    FitIns,
+    FitRes,
+    GetParametersIns,
+    GetParametersRes,
+    Parameters,
+    log,
+)
 from pytorchexample.common import ClientMethods, cleanup
 
 sem = None  # Global Semaphore object
@@ -37,7 +46,9 @@ class ClientSharedMemory(Client, Process):
                     _shm = self._send_shared_mem(res)
                     msg = self.con.recv()
                     if msg != "DELETE":
-                        raise ValueError(f"DELETE MSG IS EXPECTED HERE, INSTEAD GOT {msg}")
+                        raise ValueError(
+                            f"DELETE MSG IS EXPECTED HERE, INSTEAD GOT {msg}"
+                        )
                     _shm.shm.close()
                     _shm.shm.unlink()
                 case ClientMethods.EVALUATE:
@@ -48,7 +59,9 @@ class ClientSharedMemory(Client, Process):
                     _shm = self._send_shared_mem(res)
                     msg = self.con.recv()
                     if msg != "DELETE":
-                        raise ValueError(f"DELETE MSG IS EXPECTED HERE, INSTEAD GOT {msg}")
+                        raise ValueError(
+                            f"DELETE MSG IS EXPECTED HERE, INSTEAD GOT {msg}"
+                        )
                     _shm.shm.close()
                     _shm.shm.unlink()
                 case "CONTEXT":
@@ -65,7 +78,9 @@ class ClientSharedMemory(Client, Process):
         from multiprocessing import shared_memory
 
         params_shm = shared_memory.ShareableList(name=params_shm_name)
-        ins.parameters = Parameters(tensors=params_shm, tensor_type="padded.numpy.ndarray")
+        ins.parameters = Parameters(
+            tensors=params_shm, tensor_type="padded.numpy.ndarray"
+        )
 
         ins.parameters.tensors = list(map(lambda e: e[:-1], ins.parameters.tensors))
         ins.parameters.tensor_type = "numpy.ndarray"
@@ -76,7 +91,9 @@ class ClientSharedMemory(Client, Process):
         padded_params = [tensor + b"\x01" for tensor in res.parameters.tensors]
         res.parameters.tensors = []
         res_params_shm_name = f"result-client-{self.id}"
-        res_params_shm = shared_memory.ShareableList(padded_params, name=res_params_shm_name)
+        res_params_shm = shared_memory.ShareableList(
+            padded_params, name=res_params_shm_name
+        )
         self.con.send((self.id, (res_params_shm_name, res)))
         return res_params_shm
 
