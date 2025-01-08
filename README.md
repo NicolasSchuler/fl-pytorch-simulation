@@ -1,9 +1,19 @@
-# Implementation for two Simulation Engine Backends
+# Implementation for two (partial) Simulation Engine Backends
 
 Clone the repository, create a virtualenv and install the packages:
 
 ```bash
+# Create project directory structure
+mkdir project && cd project && git clone https://github.com/NicolasSchuler/fl-pytorch-simulation.git
 
+# create virtualenv
+python -m virtualenv .venv && source .venv/bin/activate
+
+# install dependencies
+pip install "flwr" "flwr-datasets[vision]" ray psutil torch torchvision
+
+# go into directory
+cd fl-pytorch-simulation
 ```
 
 Help command:
